@@ -5,7 +5,8 @@ import android.app.Application;
 import com.facebook.drawee.backends.pipeline.Fresco;
 
 /**
- * Created by bob on 15-12-19.
+ * 作者 bob
+ * 日期 15-12-19.
  */
 public class FrescoApplication extends Application {
     @Override

@@ -9,7 +9,8 @@ import android.view.View;
 import com.facebook.drawee.view.SimpleDraweeView;
 
 /**
- * Created by bob on 15-12-19.
+ * 作者 bob
+ * 日期 15-12-19.
  */
 public class PicDetailActivity extends Activity {
     @Override

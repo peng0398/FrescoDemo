@@ -1,11 +1,10 @@
 package com.bob.frescodemo;
 
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.graphics.PointF;
 import android.net.Uri;
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
@@ -14,7 +13,15 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.bob.frescodemo.utils.ImageUtils;
+import com.facebook.drawee.backends.pipeline.Fresco;
+import com.facebook.drawee.backends.pipeline.PipelineDraweeController;
 import com.facebook.drawee.view.SimpleDraweeView;
+import com.facebook.imagepipeline.common.ResizeOptions;
+import com.facebook.imagepipeline.request.BasePostprocessor;
+import com.facebook.imagepipeline.request.ImageRequest;
+import com.facebook.imagepipeline.request.ImageRequestBuilder;
+import com.facebook.imagepipeline.request.Postprocessor;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,6 +29,8 @@ import java.util.List;
 public class MainActivity extends AppCompatActivity {
 
     private PointF focusPoint;
+    //图片处理器，可以对加载的图片进行自定义操作，例如加网格或者高斯模糊之类的操作
+    private Postprocessor postprocessor;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -30,16 +39,28 @@ public class MainActivity extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-            }
-        });
-        focusPoint = new PointF(0.5f, 0);
+        initPicConfig();
         initView();
+    }
+    /**
+     * 设置图片处理器
+     */
+    private void initPicConfig() {
+
+        focusPoint = new PointF(0.5f, 0);
+
+        postprocessor = new BasePostprocessor() {
+            @Override
+            public String getName() {
+                return "postprocessor";
+            }
+
+            @Override
+            public void process(Bitmap bitmap) {
+//                ImageUtils.addBlock(bitmap, Color.GREEN);
+                ImageUtils.doBlur(bitmap);
+            }
+        };
     }
 
     private void initView() {
@@ -58,6 +79,7 @@ public class MainActivity extends AppCompatActivity {
     class GirlsAdapter extends RecyclerView.Adapter<GirlItemView> {
 
         private List<String> list;
+
         public GirlsAdapter(List<String> list) {
             this.list = list;
         }
@@ -70,17 +92,36 @@ public class MainActivity extends AppCompatActivity {
         }
 
         @Override
-        public void onBindViewHolder(GirlItemView holder, final int position) {
+        public void onBindViewHolder(final GirlItemView holder, final int position) {
+
             holder.imageView.getHierarchy().setActualImageFocusPoint(focusPoint);
-            holder.imageView.setImageURI(Uri.parse(list.get(position)));
+
+            displayPostprocessorPic(Uri.parse(list.get(holder.getAdapterPosition())),holder.imageView);
+
+//            holder.imageView.setImageURI(Uri.parse(list.get(position)));
             holder.imageView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    Intent intent = new Intent(MainActivity.this,PicDetailActivity.class);
-                    intent.putExtra("url",list.get(position));
+                    Intent intent = new Intent(MainActivity.this, PicDetailActivity.class);
+                    intent.putExtra("url", list.get(holder.getAdapterPosition()));
                     startActivity(intent);
                 }
             });
+        }
+
+        private void displayPostprocessorPic(Uri uri, SimpleDraweeView imageView) {
+            ImageRequest request = ImageRequestBuilder.newBuilderWithSource(uri)
+                    .setPostprocessor(postprocessor)
+                    .setResizeOptions(new ResizeOptions(638/4,960/4))
+                    .build();
+
+            PipelineDraweeController controller = (PipelineDraweeController)
+                    Fresco.newDraweeControllerBuilder()
+                            .setImageRequest(request)
+                            .setOldController(imageView.getController())
+                            // other setters as you need
+                            .build();
+            imageView.setController(controller);
         }
 
         @Override

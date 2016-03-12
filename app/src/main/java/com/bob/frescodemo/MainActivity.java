@@ -65,7 +65,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void initView() {
         RecyclerView rv_container = (RecyclerView) findViewById(R.id.rv_container);
-        rv_container.setLayoutManager(new StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL));
+        rv_container.setLayoutManager(new StaggeredGridLayoutManager(1, StaggeredGridLayoutManager.VERTICAL));
         List<String> girl_list = new ArrayList<String>();
         addDatas(girl_list);
         //设置adapter
